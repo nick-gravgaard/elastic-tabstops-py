@@ -1,0 +1,14 @@
+CHANGES.txt
+LICENSE.txt
+MANIFEST.in
+README.txt
+setup.cfg
+setup.py
+ElasticTabstops.egg-info/PKG-INFO
+ElasticTabstops.egg-info/SOURCES.txt
+ElasticTabstops.egg-info/dependency_links.txt
+ElasticTabstops.egg-info/entry_points.txt
+ElasticTabstops.egg-info/not-zip-safe
+ElasticTabstops.egg-info/top_level.txt
+elastictabstops/__init__.py
+elastictabstops/tests.py
