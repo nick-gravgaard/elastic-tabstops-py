@@ -1,7 +1,7 @@
 """Test cases for testing ElasticTabstops."""
 
 import unittest
-from elastictabstops import to_elastic_tabstops, to_spaces, MULTIPLE_TOKEN, _cell_exists, _replace_multiple_spaces
+from elastictabstops import to_elastic_tabstops, to_spaces, _cell_exists, _get_positions_contents
 
 
 ET_TEXT_1 = r"""
@@ -86,6 +86,20 @@ x       jkl
 xxxxxxxxx       pqr
 """
 
+SPACE_TEXT_3_POSITIONS_CONTENTS = [
+	[],
+	[(8, 'abc')],
+	[(8, 'def')],
+	[],
+	[(8, 'ghi')],
+	[(0, 'x'), (8, 'jkl')],
+	[],
+	[(16, 'mno')],
+	[(0, 'xxxxxxxxx'), (16, 'pqr')],
+	[],
+]
+
+
 
 ET_TEXT_4 = r"""
 	abc
@@ -100,6 +114,21 @@ SPACE_TEXT_4 = r"""
         jkl     mno
         pqr
 """
+
+
+SPACE_TEXT_5 = r"""
+/* Hopefully this Java program should demonstrate how elastic tabstops work.               */
+/* Try inserting and deleting different parts of the text and watch as the tabstops move.  */
+/* If you like this, please ask the writers of your text editor to implement it.           */
+"""
+
+SPACE_TEXT_5_POSITIONS_CONTENTS = [
+	[],
+	[(0, '/* Hopefully this Java program should demonstrate how elastic tabstops work.'), (91, '*/')],
+	[(0, '/* Try inserting and deleting different parts of the text and watch as the tabstops move.'), (91, '*/')],
+	[(0, '/* If you like this, please ask the writers of your text editor to implement it.'), (91, '*/')],
+	[],
+]
 
 
 ET_FORMATTED_CODE = r"""
@@ -315,18 +344,10 @@ class TestElasticTabstops(unittest.TestCase):
 		self.assertTrue(_cell_exists(list_of_lists, 2, 1))
 		self.assertTrue(_cell_exists(list_of_lists, 3, 2))
 
-	def test_replace_multiple_spaces(self):
-		"""Test _replace_multiple_spaces()."""
-		self.assertEqual(_replace_multiple_spaces(' x x x '), ' x x x ')
-		self.assertEqual(_replace_multiple_spaces('  x x x '), '%c%cx x x ' % ((MULTIPLE_TOKEN,) * 2))
-		self.assertEqual(_replace_multiple_spaces(' x x x  '), ' x x x%c%c' % ((MULTIPLE_TOKEN,) * 2))
-		self.assertEqual(_replace_multiple_spaces('  x x x  '), '%c%cx x x%c%c' % ((MULTIPLE_TOKEN,) * 4))
-		self.assertEqual(_replace_multiple_spaces(' x  x x '), ' x%c%cx x ' % ((MULTIPLE_TOKEN,) * 2))
-		self.assertEqual(_replace_multiple_spaces(' x x  x '), ' x x%c%cx ' % ((MULTIPLE_TOKEN,) * 2))
-		self.assertEqual(_replace_multiple_spaces('  x  x x '), '%c%cx%c%cx x ' % ((MULTIPLE_TOKEN,) * 4))
-		self.assertEqual(_replace_multiple_spaces('  x  x  x '), '%c%cx%c%cx%c%cx ' % ((MULTIPLE_TOKEN,) * 6))
-		self.assertEqual(_replace_multiple_spaces('  x  x  x  '), '%c%cx%c%cx%c%cx%c%c' % ((MULTIPLE_TOKEN,) * 8))
-		self.assertEqual(_replace_multiple_spaces('   xx   xx   xx   '), '%c%c%cxx%c%c%cxx%c%c%cxx%c%c%c' % ((MULTIPLE_TOKEN,) * 12))
+	def test_get_positions_contents(self):
+		"""Test _get_positions_contents()."""
+		self.assertEqual(_get_positions_contents(SPACE_TEXT_3, 8), SPACE_TEXT_3_POSITIONS_CONTENTS)
+		self.assertEqual(_get_positions_contents(SPACE_TEXT_5, 8), SPACE_TEXT_5_POSITIONS_CONTENTS)
 
 
 if __name__ == '__main__':

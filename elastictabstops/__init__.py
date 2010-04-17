@@ -34,8 +34,6 @@ see: http://nickgravgaard.com/elastictabstops/
 
 __all__ = ['to_elastic_tabstops', 'to_spaces']
 
-MULTIPLE_TOKEN = '\xff' # cannot appear in a valid UTF-8 sequence
-
 
 def _cell_exists(list_of_lists, line_num, cell_num):
 	"""Check that an item exists in a list of lists."""
@@ -49,79 +47,46 @@ def _calc_fixed_cell_size(text_len, tab_size):
 	return (int((text_len + 2) / tab_size) + 1) * tab_size if tab_size > 0 else tab_size
 
 
-def _replace_multiple_spaces(text):
-	"""Returns a string with multiple spaces replaced by MULTIPLE_TOKENs."""
-	def space_or_tokens():
-		"""Returns a space or a run of MULTIPLE_TOKENs."""
-		return ' ' if nof_spaces == 1 else nof_spaces * MULTIPLE_TOKEN
-
-	# if it's just a single space replace it
-	if text == ' ':
-		return MULTIPLE_TOKEN
-
-	nof_spaces = 0
-	new_text = []
-	for char in text:
-		if char == ' ':
-			nof_spaces += 1
-		else:
-			new_text.append(space_or_tokens())
-			nof_spaces = 0
-			new_text.append(char)
-
-	new_text.append(space_or_tokens())
-
-	return ''.join(new_text)
-
-
-def _tokenise_lines(lines, tab_size):
-	"""Expand tabs to MULTIPLE_TOKENs instead of spaces, and replace runs of more than one space with the same number of MULTIPLE_TOKENs."""
-	tokenised = []
-
-	for line in lines:
-		cells = line.split('\t')
-		for cell_num, cell in enumerate(cells):
-			cell = _replace_multiple_spaces(cell)
-			tokenised.append(cell)
-			if cell_num < len(cells) - 1:
-				# assume that any tabs are indended to align text with fixed column tabstops
-				tokenised.append(MULTIPLE_TOKEN * (tab_size - len(cell) % tab_size))
-	return tokenised
-
-
-def _get_positions_contents(lines):
-	"""Given tokenised text, returns a list of lists of strings and their positions."""
+def _get_positions_contents(text, tab_size):
+	"""Returns a list of lists of strings and their positions."""
 	lines_cells = []
 	max_cells = 0
 
 	# get cell's contents and positions
-	for line in lines:
+	for line in text.split('\n'):
 		cells = []
 		lines_cells.append(cells)
 		in_cell = False
 		start_pos = 0
 		end_pos = 0
-		cell_contents = ''
 		nof_cells = 0
 		char_num = 0
-		for char_num, char in enumerate(line):
-			if char == MULTIPLE_TOKEN:
-				if in_cell is True:
-					end_pos = char_num
-					cell_contents = line[start_pos:end_pos]
-					cells.append((start_pos, cell_contents))
+		nof_spaces = 0
+		for char in line:
+			if char == '\t':
+				if in_cell:
 					in_cell = False
+					end_pos = char_num - 1
+				char_num = (int(char_num / tab_size) + 1) * tab_size
 			else:
-				if in_cell is False:
-					start_pos = char_num
-					in_cell = True
-					nof_cells += 1
-				end_pos = char_num
+				if char == ' ':
+					nof_spaces += 1
+					if nof_spaces == 2:
+						in_cell = False
+						end_pos = char_num - 1
+				else:
+					nof_spaces = 0
+					if not in_cell: # starting new cell
+						in_cell = True
+						if start_pos != end_pos:
+							cells.append((start_pos, line[start_pos:end_pos]))
+							nof_cells += 1
+						start_pos = char_num
+				char_num += 1
 
-		if in_cell is True:
+		if in_cell:
 			end_pos = char_num
-			cell_contents = line[start_pos:end_pos + 1]
-			cells.append((start_pos, cell_contents))
+			cells.append((start_pos, line[start_pos:end_pos + 1]))
 
 		max_cells = max(nof_cells, max_cells)
 	return lines_cells
@@ -132,8 +97,7 @@ def to_elastic_tabstops(text, tab_size=8):
 
 	# '\r's before '\n's are just left at the end of lines
 	# solitary '\r's aren't dealt with as no one has pre Mac OS X files anymore
-	lines = _tokenise_lines(text.split('\n'), tab_size)
-	lines_cells = _get_positions_contents(lines)
+	lines_cells = _get_positions_contents(text, tab_size)
 	max_cells = max([len(line) for line in lines_cells])
 	nof_lines = len(lines_cells)
 
