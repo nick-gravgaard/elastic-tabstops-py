@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: ElasticTabstops
-Version: 0.2.0dev
+Version: 0.2.1
 Summary: Provides functionality for handling text indented/aligned with elastic tabstops
 Home-page: http://nickgravgaard.com/elastictabstops/
 Author: Nick Gravgaard
