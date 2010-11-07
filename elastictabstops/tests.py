@@ -116,13 +116,63 @@ SPACE_TEXT_4 = r"""
 """
 
 
+ET_TEXT_5 = r"""
+	abc
+	def	ghi
+	jkl	mno
+	pqr"""
+
 SPACE_TEXT_5 = r"""
+        abc
+        def     ghi
+        jkl     mno
+        pqr"""
+
+
+ET_TEXT_6 = r"""// eeeeeeee.cpp : Defines the entry point for the console application.
+//
+
+#include \"stdafx.h\"
+
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+	return 0;
+	kkkkkkkkkkkkkk	kkkkkkkk
+	llllllllllllllllllllll	llllllllllll
+
+	aa	bb	cc
+	a	b	c
+}
+
+"""
+
+SPACE_TEXT_6 = r"""// eeeeeeee.cpp : Defines the entry point for the console application.
+//
+
+#include \"stdafx.h\"
+
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+                return 0;
+                kkkkkkkkkkkkkk                  kkkkkkkk
+                llllllllllllllllllllll          llllllllllll
+
+                aa              bb              cc
+                a               b               c
+}
+
+"""
+
+
+SPACE_TEXT_7 = r"""
 /* Hopefully this Java program should demonstrate how elastic tabstops work.               */
 /* Try inserting and deleting different parts of the text and watch as the tabstops move.  */
 /* If you like this, please ask the writers of your text editor to implement it.           */
 """
 
-SPACE_TEXT_5_POSITIONS_CONTENTS = [
+SPACE_TEXT_7_POSITIONS_CONTENTS = [
 	[],
 	[(0, '/* Hopefully this Java program should demonstrate how elastic tabstops work.'), (91, '*/')],
 	[(0, '/* Try inserting and deleting different parts of the text and watch as the tabstops move.'), (91, '*/')],
@@ -307,11 +357,13 @@ def show_debug_info(string1, string2):
 
 
 TEST_STRINGS_LIST = [
-	{'et_text': ET_FORMATTED_CODE, 'space_text': SPACE_FORMATTED_CODE_MOD_8},
-	{'et_text': ET_TEXT_1, 'space_text': SPACE_TEXT_1},
-	{'et_text': ET_TEXT_2, 'space_text': SPACE_TEXT_2},
-	{'et_text': ET_TEXT_3, 'space_text': SPACE_TEXT_3},
-	{'et_text': ET_TEXT_4, 'space_text': SPACE_TEXT_4},
+	{'et_text': ET_FORMATTED_CODE, 'space_text': SPACE_FORMATTED_CODE_MOD_8, 'tab_size': 8},
+	{'et_text': ET_TEXT_1, 'space_text': SPACE_TEXT_1, 'tab_size': 8},
+	{'et_text': ET_TEXT_2, 'space_text': SPACE_TEXT_2, 'tab_size': 8},
+	{'et_text': ET_TEXT_3, 'space_text': SPACE_TEXT_3, 'tab_size': 8},
+	{'et_text': ET_TEXT_4, 'space_text': SPACE_TEXT_4, 'tab_size': 8},
+	{'et_text': ET_TEXT_5, 'space_text': SPACE_TEXT_5, 'tab_size': 8},
+	{'et_text': ET_TEXT_6, 'space_text': SPACE_TEXT_6, 'tab_size': 16},
 ]
 
 
@@ -322,14 +374,14 @@ class TestElasticTabstops(unittest.TestCase):
 		"""Test to_elastic_tabstops()."""
 		for test_strings in TEST_STRINGS_LIST:
 			string1 = test_strings['et_text']
-			string2 = to_elastic_tabstops(test_strings['space_text'], tab_size=8)
+			string2 = to_elastic_tabstops(test_strings['space_text'], test_strings['tab_size'])
 			self.assertEqual(string1, string2, show_debug_info(string1, string2))
 
 	def test_to_spaces(self):
 		"""Test to_spaces()."""
 		for test_strings in TEST_STRINGS_LIST:
 			string1 = test_strings['space_text']
-			string2 = to_spaces(test_strings['et_text'], tab_size=8)
+			string2 = to_spaces(test_strings['et_text'], test_strings['tab_size'])
 			self.assertEqual(string1, string2, show_debug_info(string1, string2))
 
 	def test_cell_exists(self):
@@ -347,7 +399,7 @@ class TestElasticTabstops(unittest.TestCase):
 	def test_get_positions_contents(self):
 		"""Test _get_positions_contents()."""
 		self.assertEqual(_get_positions_contents(SPACE_TEXT_3, 8), SPACE_TEXT_3_POSITIONS_CONTENTS)
-		self.assertEqual(_get_positions_contents(SPACE_TEXT_5, 8), SPACE_TEXT_5_POSITIONS_CONTENTS)
+		self.assertEqual(_get_positions_contents(SPACE_TEXT_7, 8), SPACE_TEXT_7_POSITIONS_CONTENTS)
 
 
 if __name__ == '__main__':

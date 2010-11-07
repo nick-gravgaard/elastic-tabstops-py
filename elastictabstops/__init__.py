@@ -31,6 +31,8 @@ see: http://nickgravgaard.com/elastictabstops/
 #  * it doesn't follow the Maximum Line Length rule
 # use pylint as following: pylint --indent-string='\t' --max-line-length=1000 elastictabstops
 
+from __future__ import division # means dividing 2 ints will give us a float rather than an int
+import math
 
 __all__ = ['to_elastic_tabstops', 'to_spaces']
 
@@ -44,7 +46,8 @@ def _calc_fixed_cell_size(text_len, tab_size):
 	"""Given the length of the text inside a cell, return the size the cell should be."""
 
 	# we add two to provide padding - one is not enough as it could be confused for a non-aligning space
-	return (int((text_len + 2) / tab_size) + 1) * tab_size if tab_size > 0 else tab_size
+	assert(tab_size)
+	return int((math.ceil((text_len + 2) / tab_size))) * tab_size
 
 
 def _get_positions_contents(text, tab_size):
@@ -67,7 +70,7 @@ def _get_positions_contents(text, tab_size):
 				if in_cell:
 					in_cell = False
 					end_pos = char_num - 1
-				char_num = (int(char_num / tab_size) + 1) * tab_size
+				char_num = (int(math.ceil(char_num / tab_size))) * tab_size
 			else:
 				if char == ' ':
 					nof_spaces += 1
@@ -108,7 +111,7 @@ def to_elastic_tabstops(text, tab_size=8):
 		start_range = 0
 		end_range = 0
 
-		for line_num in range(nof_lines):
+		for line_num in range(nof_lines + 1):
 			if _cell_exists(lines_cells, line_num, cell_num):
 				if starting_new_block is True:
 					start_range = line_num

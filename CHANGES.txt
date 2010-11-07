@@ -1,3 +1,4 @@
 v0.1.0, 2010-04-02 -- Initial release
 v0.2.0, 2010-04-17 -- Improved performance by removing tokenise step
 v0.2.1, 2010-04-17 -- Removed tag_build and tag_svn_revision from egg_info
+v0.2.2, 2010-11-07 -- Fixed a bug with files not ending with newlines, and added tests
