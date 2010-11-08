@@ -57,6 +57,7 @@ def _get_positions_contents(text, tab_size):
 
 	# get cell's contents and positions
 	for line in text.split('\n'):
+		line = line.rstrip(' \t')
 		cells = []
 		lines_cells.append(cells)
 		in_cell = False

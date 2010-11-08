@@ -166,13 +166,35 @@ int _tmain(int argc, _TCHAR* argv[])
 """
 
 
-SPACE_TEXT_7 = r"""
+ET_TEXT_7 = r"""	Hallo
+	Pupallo
+	Gugu	gaga
+	hhghga	hghghhghg
+	adsdasdasdasda		ghghghgghghg
+"""
+
+SPACE_TEXT_7_IN = r"""        Hallo             
+        Pupallo
+        Gugu    gaga
+        hhghga  hghghhghg
+        adsdasdasdasda  ghghghgghghg                
+"""
+
+SPACE_TEXT_7_OUT = r"""        Hallo
+        Pupallo
+        Gugu            gaga
+        hhghga          hghghhghg
+        adsdasdasdasda          ghghghgghghg
+"""
+
+
+SPACE_TEXT_8 = r"""
 /* Hopefully this Java program should demonstrate how elastic tabstops work.               */
 /* Try inserting and deleting different parts of the text and watch as the tabstops move.  */
 /* If you like this, please ask the writers of your text editor to implement it.           */
 """
 
-SPACE_TEXT_7_POSITIONS_CONTENTS = [
+SPACE_TEXT_8_POSITIONS_CONTENTS = [
 	[],
 	[(0, '/* Hopefully this Java program should demonstrate how elastic tabstops work.'), (91, '*/')],
 	[(0, '/* Try inserting and deleting different parts of the text and watch as the tabstops move.'), (91, '*/')],
@@ -364,6 +386,7 @@ TEST_STRINGS_LIST = [
 	{'et_text': ET_TEXT_4, 'space_text': SPACE_TEXT_4, 'tab_size': 8},
 	{'et_text': ET_TEXT_5, 'space_text': SPACE_TEXT_5, 'tab_size': 8},
 	{'et_text': ET_TEXT_6, 'space_text': SPACE_TEXT_6, 'tab_size': 16},
+	{'et_text': ET_TEXT_7, 'space_text': SPACE_TEXT_7_IN, 'space_text_out': SPACE_TEXT_7_OUT, 'tab_size': 8},
 ]
 
 
@@ -380,7 +403,10 @@ class TestElasticTabstops(unittest.TestCase):
 	def test_to_spaces(self):
 		"""Test to_spaces()."""
 		for test_strings in TEST_STRINGS_LIST:
-			string1 = test_strings['space_text']
+			if 'space_text_out' in test_strings:
+				string1 = test_strings['space_text_out']
+			else:
+				string1 = test_strings['space_text']
 			string2 = to_spaces(test_strings['et_text'], test_strings['tab_size'])
 			self.assertEqual(string1, string2, show_debug_info(string1, string2))
 
@@ -399,7 +425,7 @@ class TestElasticTabstops(unittest.TestCase):
 	def test_get_positions_contents(self):
 		"""Test _get_positions_contents()."""
 		self.assertEqual(_get_positions_contents(SPACE_TEXT_3, 8), SPACE_TEXT_3_POSITIONS_CONTENTS)
-		self.assertEqual(_get_positions_contents(SPACE_TEXT_7, 8), SPACE_TEXT_7_POSITIONS_CONTENTS)
+		self.assertEqual(_get_positions_contents(SPACE_TEXT_8, 8), SPACE_TEXT_8_POSITIONS_CONTENTS)
 
 
 if __name__ == '__main__':
