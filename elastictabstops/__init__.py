@@ -33,6 +33,7 @@ see: http://nickgravgaard.com/elastictabstops/
 
 from __future__ import division # means dividing 2 ints will give us a float rather than an int
 import math
+import re
 
 __all__ = ['to_elastic_tabstops', 'to_spaces']
 
@@ -51,49 +52,27 @@ def _calc_fixed_cell_size(text_len, tab_size):
 
 
 def _get_positions_contents(text, tab_size):
-	"""Returns a list of lists of strings and their positions."""
-	lines_cells = []
-	max_cells = 0
 
-	# get cell's contents and positions
-	for line in text.split('\n'):
-		line = line.rstrip(' \t')
-		cells = []
-		lines_cells.append(cells)
-		in_cell = False
-		start_pos = 0
-		end_pos = 0
-		nof_cells = 0
-		char_num = 0
-		nof_spaces = 0
+	def sub_tabs(line, tab_size, repl_char):
+		str_list = []
+		pos = 0
 		for char in line:
 			if char == '\t':
-				if in_cell:
-					in_cell = False
-					end_pos = char_num - 1
-				char_num = (int(math.ceil(char_num / tab_size))) * tab_size
+				expand = tab_size - (pos % tab_size)
+				str_list.append(expand * repl_char)
+				pos += expand
 			else:
-				if char == ' ':
-					nof_spaces += 1
-					if nof_spaces == 2:
-						in_cell = False
-						end_pos = char_num - 1
-				else:
-					nof_spaces = 0
-					if not in_cell: # starting new cell
-						in_cell = True
-						if start_pos != end_pos:
-							cells.append((start_pos, line[start_pos:end_pos]))
-							nof_cells += 1
-						start_pos = char_num
-				char_num += 1
+				str_list.append(char)
+				pos += 1
+		return ''.join(str_list)
 
-		if in_cell:
-			end_pos = char_num
-			cells.append((start_pos, line[start_pos:end_pos + 1]))
+	repl_char = '\x1a' # the 'substitute character'
+	text = '\n'.join([sub_tabs(line, tab_size, repl_char) for line in text.split('\n')])
 
-		max_cells = max(nof_cells, max_cells)
-	return lines_cells
+	# Look for a char that is (not a space or \x1a) followed by any number of chars that are either (not a space or \x1a) or a space followed by (not a space or \x1a)
+	# This allows the substrings to have spaces, but only if that space is followed by a non-space char
+	p = re.compile(r'[^%(repl_char)s\s](?:[^%(repl_char)s\s]|\s(?=[^%(repl_char)s\s]))*' % {'repl_char': repl_char})
+	return [[(m.start(), m.group()) for m in p.finditer(line)] for line in text.split('\n')]
 
 
 def to_elastic_tabstops(text, tab_size=8):

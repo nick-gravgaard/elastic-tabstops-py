@@ -188,13 +188,71 @@ SPACE_TEXT_7_OUT = r"""        Hallo
 """
 
 
-SPACE_TEXT_8 = r"""
+ET_TEXT_8 = """	push
+		(
+		@{$self->{struct}},
+			{
+			source	=> $source,
+			filename	=> $filename,
+			pathname	=> $pathname,
+			lang	=> $lang,
+			level	=> $level,
+			back	=> $back,
+			url	=> $url,
+			modified	=> $modified,
+			id	=> Digest::MD5::md5_hex($url),
+			file	=> $file,
+			}
+		);
+	}
+"""
+
+TAB_TEXT_8_IN = """	push
+		(
+		@{$self->{struct}},
+			{
+			source		=> $source,
+			filename	=> $filename,
+			pathname 	=> $pathname,
+			lang		=> $lang,
+			level		=> $level,
+			back		=> $back,
+			url			=> $url,
+			modified	=> $modified,
+			id			=> Digest::MD5::md5_hex($url),
+			file		=> $file,
+			}
+		);
+	}
+"""
+
+SPACE_TEXT_8_OUT = """    push
+        (
+        @{$self->{struct}},
+            {
+            source      => $source,
+            filename    => $filename,
+            pathname    => $pathname,
+            lang        => $lang,
+            level       => $level,
+            back        => $back,
+            url         => $url,
+            modified    => $modified,
+            id          => Digest::MD5::md5_hex($url),
+            file        => $file,
+            }
+        );
+    }
+"""
+
+
+SPACE_TEXT_9 = r"""
 /* Hopefully this Java program should demonstrate how elastic tabstops work.               */
 /* Try inserting and deleting different parts of the text and watch as the tabstops move.  */
 /* If you like this, please ask the writers of your text editor to implement it.           */
 """
 
-SPACE_TEXT_8_POSITIONS_CONTENTS = [
+SPACE_TEXT_9_POSITIONS_CONTENTS = [
 	[],
 	[(0, '/* Hopefully this Java program should demonstrate how elastic tabstops work.'), (91, '*/')],
 	[(0, '/* Try inserting and deleting different parts of the text and watch as the tabstops move.'), (91, '*/')],
@@ -387,6 +445,7 @@ TEST_STRINGS_LIST = [
 	{'et_text': ET_TEXT_5, 'space_text': SPACE_TEXT_5, 'tab_size': 8},
 	{'et_text': ET_TEXT_6, 'space_text': SPACE_TEXT_6, 'tab_size': 16},
 	{'et_text': ET_TEXT_7, 'space_text': SPACE_TEXT_7_IN, 'space_text_out': SPACE_TEXT_7_OUT, 'tab_size': 8},
+	{'et_text': ET_TEXT_8, 'space_text': TAB_TEXT_8_IN, 'space_text_out': SPACE_TEXT_8_OUT, 'tab_size': 4},
 ]
 
 
@@ -425,7 +484,7 @@ class TestElasticTabstops(unittest.TestCase):
 	def test_get_positions_contents(self):
 		"""Test _get_positions_contents()."""
 		self.assertEqual(_get_positions_contents(SPACE_TEXT_3, 8), SPACE_TEXT_3_POSITIONS_CONTENTS)
-		self.assertEqual(_get_positions_contents(SPACE_TEXT_8, 8), SPACE_TEXT_8_POSITIONS_CONTENTS)
+		self.assertEqual(_get_positions_contents(SPACE_TEXT_9, 8), SPACE_TEXT_9_POSITIONS_CONTENTS)
 
 
 if __name__ == '__main__':
