@@ -1,10 +1,10 @@
 """
 ElasticTabstops package
-Provides functionality for handling text indented/aligned with elastic tabstops
+Converts text indented/aligned with elastic tabstops
 see: http://nickgravgaard.com/elastictabstops/
 """
 
-# Copyright (c) 2007-2010 Nick Gravgaard <me@nickgravgaard.com>
+# Copyright (c) 2007-2012 Nick Gravgaard <me@nickgravgaard.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -31,7 +31,6 @@ see: http://nickgravgaard.com/elastictabstops/
 #  * it doesn't follow the Maximum Line Length rule
 # use pylint as following: pylint --indent-string='\t' --max-line-length=1000 elastictabstops
 
-from __future__ import division # means dividing 2 ints will give us a float rather than an int
 import math
 import re
 
@@ -40,7 +39,7 @@ __all__ = ['to_elastic_tabstops', 'to_spaces']
 
 def _cell_exists(list_of_lists, line_num, cell_num):
 	"""Check that an item exists in a list of lists."""
-	return True if line_num < len(list_of_lists) and cell_num < len(list_of_lists[line_num]) else False
+	return line_num < len(list_of_lists) and cell_num < len(list_of_lists[line_num])
 
 
 def _calc_fixed_cell_size(text_len, tab_size):
@@ -48,7 +47,7 @@ def _calc_fixed_cell_size(text_len, tab_size):
 
 	# we add two to provide padding - one is not enough as it could be confused for a non-aligning space
 	assert(tab_size)
-	return int((math.ceil((text_len + 2) / tab_size))) * tab_size
+	return int((math.ceil((text_len + 2) / float(tab_size)))) * tab_size
 
 
 def _get_positions_contents(text, tab_size):

@@ -419,21 +419,21 @@ def show_diffs(string1, string2):
 			output.append("<rep>" + seqm.a[a_0:a_1] + "<became>" + seqm.a[b_0:b_1] + "</rep>")
 			changed = True
 		else:
-			raise RuntimeError, "unexpected opcode"
+			raise RuntimeError("unexpected opcode")
 	if changed:
-		print ''.join(output)
+		print(''.join(output))
 
 
 def show_debug_info(string1, string2):
 	"""Show differences and other debug info about 2 strings."""
 	show_diffs(string1, string2)
 	if string1 != string2:
-		print 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv string 1 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv'
-		print string1
-		print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ string 1 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'
-		print 'vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv string 2 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv'
-		print string2
-		print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ string 2 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'
+		print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv string 1 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv')
+		print(string1)
+		print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ string 1 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+		print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv string 2 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv')
+		print(string2)
+		print('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ string 2 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
 
 
 TEST_STRINGS_LIST = [

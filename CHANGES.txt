@@ -4,3 +4,4 @@ v0.2.1, 2010-04-17 -- Removed tag_build and tag_svn_revision from egg_info
 v0.2.2, 2010-11-07 -- Fixed a bug with files not ending with newlines, and added tests
 v0.2.3, 2010-11-08 -- Fixed a bug with lines ending with whitespace, and added tests
 v0.2.4, 2010-11-17 -- Fixed a problem with tabs in files that were expected to contain spaces, and added tests
+v0.2.5, 2012-11-16 -- Ported to Python 3

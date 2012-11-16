@@ -1,14 +1,16 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.2.4'
+version = '0.2.5'
 
 setup(name='ElasticTabstops',
     version=version,
-    description='Provides functionality for handling text indented/aligned with elastic tabstops',
+    description='Converts text indented/aligned with elastic tabstops',
     long_description=open('README.txt').read(),
     classifiers=[
         'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
         'Topic :: Text Processing',
         'Topic :: Text Processing :: Filters',
         'Topic :: Text Processing :: General',
