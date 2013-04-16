@@ -4,7 +4,7 @@ Converts text indented/aligned with elastic tabstops
 see: http://nickgravgaard.com/elastictabstops/
 """
 
-# Copyright (c) 2007-2012 Nick Gravgaard <me@nickgravgaard.com>
+# Copyright (c) 2007-2013 Nick Gravgaard <me@nickgravgaard.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -33,12 +33,16 @@ see: http://nickgravgaard.com/elastictabstops/
 
 import math
 import re
+from collections import namedtuple
 
 __all__ = ['to_elastic_tabstops', 'to_spaces']
+
+PositionedText = namedtuple('PositionedText', 'position text')
 
 
 def _cell_exists(list_of_lists, line_num, cell_num):
 	"""Check that an item exists in a list of lists."""
+
 	return line_num < len(list_of_lists) and cell_num < len(list_of_lists[line_num])
 
 
@@ -50,28 +54,32 @@ def _calc_fixed_cell_size(text_len, tab_size):
 	return int((math.ceil((text_len + 2) / float(tab_size)))) * tab_size
 
 
+def _sub_tabs(line, tab_size, repl_char):
+	"""Return a line of text where tab characters have been substituted with the correct number of replacement chaaracters."""
+
+	str_list = []
+	pos = 0
+	for char in line:
+		if char == '\t':
+			expand = tab_size - (pos % tab_size)
+			str_list.append(expand * repl_char)
+			pos += expand
+		else:
+			str_list.append(char)
+			pos += 1
+	return ''.join(str_list)
+
+
 def _get_positions_contents(text, tab_size):
+	"""Given a piece of text and how long tabs should be, return a list of lists of PositionedText named tuples."""
 
-	def sub_tabs(line, tab_size, repl_char):
-		str_list = []
-		pos = 0
-		for char in line:
-			if char == '\t':
-				expand = tab_size - (pos % tab_size)
-				str_list.append(expand * repl_char)
-				pos += expand
-			else:
-				str_list.append(char)
-				pos += 1
-		return ''.join(str_list)
-
-	repl_char = '\x1a' # the 'substitute character'
-	text = '\n'.join([sub_tabs(line, tab_size, repl_char) for line in text.split('\n')])
+	repl_char = '\x1a' # the 'substitute character' in unicode
+	text = '\n'.join([_sub_tabs(line, tab_size, repl_char) for line in text.split('\n')])
 
 	# Look for a char that is (not a space or \x1a) followed by any number of chars that are either (not a space or \x1a) or a space followed by (not a space or \x1a)
 	# This allows the substrings to have spaces, but only if that space is followed by a non-space char
 	p = re.compile(r'[^%(repl_char)s\s](?:[^%(repl_char)s\s]|\s(?=[^%(repl_char)s\s]))*' % {'repl_char': repl_char})
-	return [[(m.start(), m.group()) for m in p.finditer(line)] for line in text.split('\n')]
+	return [[PositionedText(m.start(), m.group()) for m in p.finditer(line)] for line in text.split('\n')]
 
 
 def to_elastic_tabstops(text, tab_size=8):
@@ -92,33 +100,31 @@ def to_elastic_tabstops(text, tab_size=8):
 
 		for line_num in range(nof_lines + 1):
 			if _cell_exists(lines_cells, line_num, cell_num):
-				if starting_new_block is True:
+				if starting_new_block:
 					start_range = line_num
 					starting_new_block = False
 				end_range = line_num
-			else:
-				# end column block
-				if starting_new_block is False:
-					sliced_list = [lines_cells[blockcell_num][cell_num][0] for blockcell_num in range(start_range, end_range + 1)]
+			elif not starting_new_block: # end column block
+				sliced_list = [lines_cells[blockcell_num][cell_num].position for blockcell_num in range(start_range, end_range + 1)]
 
-					min_indent = min(sliced_list)
+				min_indent = min(sliced_list)
 
-					for blockcell_num, blockcell in enumerate(sliced_list):
-						if blockcell > min_indent:
-							# shift cells across
-							lines_cells[start_range + blockcell_num].insert(cell_num, (0, ''))
+				for blockcell_num, blockcell in enumerate(sliced_list):
+					if blockcell > min_indent:
+						# shift cells across
+						lines_cells[start_range + blockcell_num].insert(cell_num, PositionedText(0, ''))
+						max_cells = max(max_cells, len(lines_cells[start_range + blockcell_num]))
+					elif cell_num == 0 and blockcell > 1:
+						for i in range(int(blockcell / tab_size)):
+							# insert empty indentation cells
+							lines_cells[start_range + blockcell_num].insert(cell_num, PositionedText(0, ''))
 							max_cells = max(max_cells, len(lines_cells[start_range + blockcell_num]))
-						elif cell_num == 0 and blockcell > 1:
-							for i in range(int(blockcell / tab_size)):
-								# insert empty indentation cells
-								lines_cells[start_range + blockcell_num].insert(cell_num, (0, ''))
-								max_cells = max(max_cells, len(lines_cells[start_range + blockcell_num]))
 
-					starting_new_block = True
+				starting_new_block = True
 
 		cell_num += 1
 
-	return '\n'.join(['\t'.join([cell[1] for cell in line]) for line in lines_cells])
+	return '\n'.join(['\t'.join([cell.text for cell in line]) for line in lines_cells])
 
 
 def to_spaces(text, tab_size=8):
@@ -138,20 +144,18 @@ def to_spaces(text, tab_size=8):
 		max_width = 0
 		for line_num in range(nof_lines):
 			if _cell_exists(sizes, line_num, cell_num + 1) and _cell_exists(sizes, line_num, cell_num):
-				if starting_new_block is True:
+				if starting_new_block:
 					start_range = line_num
 					starting_new_block = False
 				max_width = max(max_width, sizes[line_num][cell_num])
 				end_range = line_num
-			else:
-				# end column block
-				if starting_new_block is False:
-					for blockcell_num in range(start_range, end_range + 1):
-						sizes[blockcell_num][cell_num] = max_width
-					starting_new_block = True
-					max_width = 0
+			elif not starting_new_block: # end column block
+				for blockcell_num in range(start_range, end_range + 1):
+					sizes[blockcell_num][cell_num] = max_width
+				starting_new_block = True
+				max_width = 0
 
-		if starting_new_block is False:
+		if not starting_new_block:
 			for blockcell_num in range(start_range, end_range + 1):
 				sizes[blockcell_num][cell_num] = max_width
 

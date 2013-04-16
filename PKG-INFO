@@ -1,7 +1,7 @@
-Metadata-Version: 1.0
+Metadata-Version: 1.1
 Name: ElasticTabstops
-Version: 0.2.5
-Summary: Provides functionality for handling text indented/aligned with elastic tabstops
+Version: 0.2.6
+Summary: Converts text indented/aligned with elastic tabstops
 Home-page: http://nickgravgaard.com/elastictabstops/
 Author: Nick Gravgaard
 Author-email: me@nickgravgaard.com
@@ -15,6 +15,8 @@ Description: This package provides functionality for handling text indented/alig
         
 Platform: UNKNOWN
 Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
 Classifier: Topic :: Text Processing
 Classifier: Topic :: Text Processing :: Filters
 Classifier: Topic :: Text Processing :: General
