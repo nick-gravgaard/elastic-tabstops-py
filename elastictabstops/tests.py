@@ -88,14 +88,14 @@ xxxxxxxxx       pqr
 
 SPACE_TEXT_3_POSITIONS_CONTENTS = [
 	[],
-	[(8, 'abc')],
-	[(8, 'def')],
+	[('abc', 8)],
+	[('def', 8)],
 	[],
-	[(8, 'ghi')],
-	[(0, 'x'), (8, 'jkl')],
+	[('ghi', 8)],
+	[('x', 0), ('jkl', 8)],
 	[],
-	[(16, 'mno')],
-	[(0, 'xxxxxxxxx'), (16, 'pqr')],
+	[('mno', 16)],
+	[('xxxxxxxxx', 0), ('pqr', 16)],
 	[],
 ]
 
@@ -254,9 +254,9 @@ SPACE_TEXT_9 = r"""
 
 SPACE_TEXT_9_POSITIONS_CONTENTS = [
 	[],
-	[(0, '/* Hopefully this Java program should demonstrate how elastic tabstops work.'), (91, '*/')],
-	[(0, '/* Try inserting and deleting different parts of the text and watch as the tabstops move.'), (91, '*/')],
-	[(0, '/* If you like this, please ask the writers of your text editor to implement it.'), (91, '*/')],
+	[('/* Hopefully this Java program should demonstrate how elastic tabstops work.', 0), ('*/', 91)],
+	[('/* Try inserting and deleting different parts of the text and watch as the tabstops move.', 0), ('*/', 91)],
+	[('/* If you like this, please ask the writers of your text editor to implement it.', 0), ('*/', 91)],
 	[],
 ]
 

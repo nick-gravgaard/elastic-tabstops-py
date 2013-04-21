@@ -37,21 +37,38 @@ from collections import namedtuple
 
 __all__ = ['to_elastic_tabstops', 'to_spaces']
 
-PositionedText = namedtuple('PositionedText', 'position text')
+# This code can be used to convert large amounts of text, so performance matters.
+# For this reason we use namedtuples and __slots__ to create readable but well-performing data structures.
+
+PositionedText = namedtuple('PositionedText', 'text position')
+
+class SizedText(object):
+	"""Class used to store text and the width of the cell it's in."""
+
+	__slots__ = ['text', 'size']
+
+	def __init__(self, text, tab_size):
+		self.text = text
+		# size initially stores the minimum width of the cell
+		self.size = self.calc_fixed_cell_size(tab_size)
+
+	def calc_fixed_cell_size(self, tab_size):
+		"""Given the length of the text inside a cell, return the size the cell should be."""
+
+		# we add two to provide padding - one is not enough as it could be confused for a non-aligning space
+		return int((math.ceil((len(self.text) + 2) / float(tab_size)))) * tab_size
+
+	def get_padded_text(self):
+		"""Returns self.text plus spaces to match the number of characters in self.size."""
+
+		nof_spaces = self.size - len(self.text)
+		return self.text + (' ' * nof_spaces)
 
 
 def _cell_exists(list_of_lists, line_num, cell_num):
 	"""Check that an item exists in a list of lists."""
 
 	return line_num < len(list_of_lists) and cell_num < len(list_of_lists[line_num])
-
-
-def _calc_fixed_cell_size(text_len, tab_size):
-	"""Given the length of the text inside a cell, return the size the cell should be."""
-
-	# we add two to provide padding - one is not enough as it could be confused for a non-aligning space
-	assert(tab_size)
-	return int((math.ceil((text_len + 2) / float(tab_size)))) * tab_size
 
 
 def _sub_tabs(line, tab_size, repl_char):
@@ -78,18 +95,18 @@ def _get_positions_contents(text, tab_size):
 
 	# Look for a char that is (not a space or \x1a) followed by any number of chars that are either (not a space or \x1a) or a space followed by (not a space or \x1a)
 	# This allows the substrings to have spaces, but only if that space is followed by a non-space char
-	p = re.compile(r'[^%(repl_char)s\s](?:[^%(repl_char)s\s]|\s(?=[^%(repl_char)s\s]))*' % {'repl_char': repl_char})
-	return [[PositionedText(m.start(), m.group()) for m in p.finditer(line)] for line in text.split('\n')]
+	compiled = re.compile(r'[^%(repl_char)s\s](?:[^%(repl_char)s\s]|\s(?=[^%(repl_char)s\s]))*' % {'repl_char': repl_char})
+	return [[PositionedText(match.group(), match.start()) for match in compiled.finditer(line)] for line in text.split('\n')]
 
 
 def to_elastic_tabstops(text, tab_size=8):
 	"""Convert text from using spaces to using tabs with elastic tabstops."""
 
 	# '\r's before '\n's are just left at the end of lines
-	# solitary '\r's aren't dealt with as no one has pre Mac OS X files anymore
-	lines_cells = _get_positions_contents(text, tab_size)
-	max_cells = max([len(line) for line in lines_cells])
-	nof_lines = len(lines_cells)
+	# solitary '\r's aren't dealt with as these days no one uses CRs on their own for new lines
+	lines = _get_positions_contents(text, tab_size)
+	max_cells = max([len(line) for line in lines])
+	nof_lines = len(lines)
 
 	# not a "for cell_num in (range(max_cells)):" loop because max_cells may increase 
 	cell_num = 0
@@ -99,41 +116,40 @@ def to_elastic_tabstops(text, tab_size=8):
 		end_range = 0
 
 		for line_num in range(nof_lines + 1):
-			if _cell_exists(lines_cells, line_num, cell_num):
+			if _cell_exists(lines, line_num, cell_num):
 				if starting_new_block:
 					start_range = line_num
 					starting_new_block = False
 				end_range = line_num
 			elif not starting_new_block: # end column block
-				sliced_list = [lines_cells[blockcell_num][cell_num].position for blockcell_num in range(start_range, end_range + 1)]
+				sliced_list = [lines[blockcell_num][cell_num].position for blockcell_num in range(start_range, end_range + 1)]
 
 				min_indent = min(sliced_list)
 
 				for blockcell_num, blockcell in enumerate(sliced_list):
 					if blockcell > min_indent:
 						# shift cells across
-						lines_cells[start_range + blockcell_num].insert(cell_num, PositionedText(0, ''))
-						max_cells = max(max_cells, len(lines_cells[start_range + blockcell_num]))
+						lines[start_range + blockcell_num].insert(cell_num, PositionedText('', 0))
+						max_cells = max(max_cells, len(lines[start_range + blockcell_num]))
 					elif cell_num == 0 and blockcell > 1:
-						for i in range(int(blockcell / tab_size)):
+						for _ in range(int(blockcell / tab_size)):
 							# insert empty indentation cells
-							lines_cells[start_range + blockcell_num].insert(cell_num, PositionedText(0, ''))
-							max_cells = max(max_cells, len(lines_cells[start_range + blockcell_num]))
+							lines[start_range + blockcell_num].insert(cell_num, PositionedText('', 0))
+							max_cells = max(max_cells, len(lines[start_range + blockcell_num]))
 
 				starting_new_block = True
 
 		cell_num += 1
 
-	return '\n'.join(['\t'.join([cell.text for cell in line]) for line in lines_cells])
+	return '\n'.join(['\t'.join([cell.text for cell in line]) for line in lines])
 
 
 def to_spaces(text, tab_size=8):
 	"""Convert text from using tabs with elastic tabstops to using spaces."""
 
 	# '\r's before '\n's are just left at the end of lines
-	# solitary '\r's aren't dealt with as no one has pre Mac OS X files anymore
-	lines = [line.split('\t') for line in text.split('\n')]
-	sizes = [[_calc_fixed_cell_size(len(cell), tab_size) for cell in line] for line in lines]
+	# solitary '\r's aren't dealt with as these days no one uses CRs on their own for new lines
+	lines = [[SizedText(cell, tab_size) for cell in line.split('\t')] for line in text.split('\n')]
 	max_cells = max([len(line) for line in lines])
 	nof_lines = len(lines)
 
@@ -143,33 +159,29 @@ def to_spaces(text, tab_size=8):
 		end_range = 0
 		max_width = 0
 		for line_num in range(nof_lines):
-			if _cell_exists(sizes, line_num, cell_num + 1) and _cell_exists(sizes, line_num, cell_num):
+			if _cell_exists(lines, line_num, cell_num + 1) and _cell_exists(lines, line_num, cell_num):
 				if starting_new_block:
 					start_range = line_num
 					starting_new_block = False
-				max_width = max(max_width, sizes[line_num][cell_num])
+				max_width = max(max_width, lines[line_num][cell_num].size)
 				end_range = line_num
 			elif not starting_new_block: # end column block
 				for blockcell_num in range(start_range, end_range + 1):
-					sizes[blockcell_num][cell_num] = max_width
+					lines[blockcell_num][cell_num].size = max_width
 				starting_new_block = True
 				max_width = 0
 
 		if not starting_new_block:
 			for blockcell_num in range(start_range, end_range + 1):
-				sizes[blockcell_num][cell_num] = max_width
+				lines[blockcell_num][cell_num].size = max_width
 
 	# append text and spaces to new_text
 	new_text = [''] * nof_lines
 	for line_num in range(nof_lines):
-		for cell_num in range(max_cells):
-			try:
-				if cell_num < len(lines[line_num]) - 1:
-					nof_spaces = sizes[line_num][cell_num] - len(lines[line_num][cell_num])
-					new_text[line_num] += lines[line_num][cell_num] + (' ' * nof_spaces)
-				else:
-					new_text[line_num] += lines[line_num][cell_num]
-			except IndexError:
-				pass
+		if len(lines[line_num]) > 0:
+			for cell_num in range(len(lines[line_num]) - 1):
+				new_text[line_num] += lines[line_num][cell_num].get_padded_text()
+			last_cell_num = len(lines[line_num]) - 1
+			new_text[line_num] += lines[line_num][last_cell_num].text
 
 	return '\n'.join(new_text)
