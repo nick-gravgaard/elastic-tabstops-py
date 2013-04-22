@@ -5,7 +5,7 @@ see: http://nickgravgaard.com/elastictabstops/
 """
 
 # Copyright (c) 2007-2013 Nick Gravgaard <me@nickgravgaard.com>
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -108,7 +108,7 @@ def to_elastic_tabstops(text, tab_size=8):
 	max_cells = max([len(line) for line in lines])
 	nof_lines = len(lines)
 
-	# not a "for cell_num in (range(max_cells)):" loop because max_cells may increase 
+	# not a "for cell_num in (range(max_cells)):" loop because max_cells may increase
 	cell_num = 0
 	while cell_num < max_cells:
 		starting_new_block = True
@@ -117,25 +117,31 @@ def to_elastic_tabstops(text, tab_size=8):
 
 		for line_num in range(nof_lines + 1):
 			if _cell_exists(lines, line_num, cell_num):
+				# if we're at the start of a block remember what line we're on
 				if starting_new_block:
 					start_range = line_num
 					starting_new_block = False
 				end_range = line_num
-			elif not starting_new_block: # end column block
-				sliced_list = [lines[blockcell_num][cell_num].position for blockcell_num in range(start_range, end_range + 1)]
+			# if there's no cell and we're not starting a block then we're at the end of a column block
+			elif not starting_new_block:
+				block_positions = [lines[block_line_num][cell_num].position for block_line_num in range(start_range, end_range + 1)]
 
-				min_indent = min(sliced_list)
+				min_indent = min(block_positions)
 
-				for blockcell_num, blockcell in enumerate(sliced_list):
-					if blockcell > min_indent:
-						# shift cells across
-						lines[start_range + blockcell_num].insert(cell_num, PositionedText('', 0))
-						max_cells = max(max_cells, len(lines[start_range + blockcell_num]))
-					elif cell_num == 0 and blockcell > 1:
-						for _ in range(int(blockcell / tab_size)):
+				for block_line_offset, block_position in enumerate(block_positions):
+					block_line_num = start_range + block_line_offset
+					# if the current block is to the right we need to insert an empty cell
+					if block_position > min_indent:
+						# insert an empty cell to shift existing cells across
+						lines[block_line_num].insert(cell_num, PositionedText('', 0))
+						max_cells = max(max_cells, len(lines[block_line_num]))
+					# otherwise if we're in the first column we need to insert empty cells for every line in this block
+					elif cell_num == 0:
+						nof_cells_missing = int(block_position / tab_size)
+						for _ in range(nof_cells_missing):
 							# insert empty indentation cells
-							lines[start_range + blockcell_num].insert(cell_num, PositionedText('', 0))
-							max_cells = max(max_cells, len(lines[start_range + blockcell_num]))
+							lines[block_line_num].insert(cell_num, PositionedText('', 0))
+							max_cells = max(max_cells, len(lines[block_line_num]))
 
 				starting_new_block = True
 
@@ -159,21 +165,27 @@ def to_spaces(text, tab_size=8):
 		end_range = 0
 		max_width = 0
 		for line_num in range(nof_lines):
-			if _cell_exists(lines, line_num, cell_num + 1) and _cell_exists(lines, line_num, cell_num):
+			# check if there's a cell to the right of this column (which means this cell ends in a tab) - we only care about terminated cells
+			if _cell_exists(lines, line_num, cell_num + 1):
+				# if we're at the start of a block remember what line we're on
 				if starting_new_block:
 					start_range = line_num
 					starting_new_block = False
+				# record the max width of the block so far
 				max_width = max(max_width, lines[line_num][cell_num].size)
 				end_range = line_num
-			elif not starting_new_block: # end column block
-				for blockcell_num in range(start_range, end_range + 1):
-					lines[blockcell_num][cell_num].size = max_width
+			# if the cell has not been terminated and we're not starting a block then we're at the end of a column block
+			elif not starting_new_block:
+				# iterate over all cells in the block and set their width to the max width
+				for block_line_num in range(start_range, end_range + 1):
+					lines[block_line_num][cell_num].size = max_width
 				starting_new_block = True
 				max_width = 0
 
+		# if we got to the last line without setting the size of the current block, do that now
 		if not starting_new_block:
-			for blockcell_num in range(start_range, end_range + 1):
-				lines[blockcell_num][cell_num].size = max_width
+			for block_line_num in range(start_range, end_range + 1):
+				lines[block_line_num][cell_num].size = max_width
 
 	# append text and spaces to new_text
 	new_text = [''] * nof_lines
