@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.2.8'
+version = '0.2.9'
 
 setup(name='ElasticTabstops',
     version=version,
@@ -9,7 +9,7 @@ setup(name='ElasticTabstops',
     long_description=open('README.txt').read(),
     classifiers=[
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Topic :: Text Processing',
         'Topic :: Text Processing :: Filters',

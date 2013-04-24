@@ -454,6 +454,13 @@ class TestElasticTabstops(unittest.TestCase):
 
 	def test_to_elastic_tabstops(self):
 		"""Test to_elastic_tabstops()."""
+		with self.assertRaises(TypeError):
+			to_elastic_tabstops(2, 2)
+			to_elastic_tabstops('', '')
+
+		with self.assertRaises(ValueError):
+			to_elastic_tabstops('', 1)
+
 		for test_strings in TEST_STRINGS_LIST:
 			string1 = test_strings['et_text']
 			string2 = to_elastic_tabstops(test_strings['space_text'], test_strings['tab_size'])
@@ -461,6 +468,13 @@ class TestElasticTabstops(unittest.TestCase):
 
 	def test_to_spaces(self):
 		"""Test to_spaces()."""
+		with self.assertRaises(TypeError):
+			to_spaces(2, 2)
+			to_spaces('', '')
+
+		with self.assertRaises(ValueError):
+			to_spaces('', 1)
+
 		for test_strings in TEST_STRINGS_LIST:
 			if 'space_text_out' in test_strings:
 				string1 = test_strings['space_text_out']

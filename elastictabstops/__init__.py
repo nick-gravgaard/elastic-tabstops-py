@@ -31,9 +31,9 @@ see: http://nickgravgaard.com/elastictabstops/
 #  * it doesn't follow the Maximum Line Length rule
 # use pylint as following: pylint --indent-string='\t' --max-line-length=1000 elastictabstops
 
+from collections import namedtuple
 import math
 import re
-from collections import namedtuple
 
 __all__ = ['to_elastic_tabstops', 'to_spaces']
 
@@ -102,6 +102,11 @@ def _get_positions_contents(text, tab_size):
 def to_elastic_tabstops(text, tab_size=8):
 	"""Convert text from using spaces to using tabs with elastic tabstops."""
 
+	if not isinstance(text, str) or not isinstance(tab_size, int):
+		raise TypeError('The to_elastic_tabstops function takes a string and an integer.')
+	if tab_size < 2:
+		raise ValueError("The second parameter of to_elastic_tabstops ('tab_size') should be 2 or greater.")
+
 	# '\r's before '\n's are just left at the end of lines
 	# solitary '\r's aren't dealt with as these days no one uses CRs on their own for new lines
 	lines = _get_positions_contents(text, tab_size)
@@ -152,6 +157,11 @@ def to_elastic_tabstops(text, tab_size=8):
 
 def to_spaces(text, tab_size=8):
 	"""Convert text from using tabs with elastic tabstops to using spaces."""
+
+	if not isinstance(text, str) or not isinstance(tab_size, int):
+		raise TypeError('The to_spaces function takes a string and an integer.')
+	if tab_size < 2:
+		raise ValueError("The second parameter of to_spaces ('tab_size') should be 2 or greater.")
 
 	# '\r's before '\n's are just left at the end of lines
 	# solitary '\r's aren't dealt with as these days no one uses CRs on their own for new lines
