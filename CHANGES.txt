@@ -9,3 +9,4 @@ v0.2.6, 2013-04-16 -- Added tox file to make testing different versions of Pytho
 v0.2.7, 2013-04-21 -- Added SizedText class, refactored some code and solved some PyLint complaints
 v0.2.8, 2013-04-22 -- Attempted to make code more readable and improved comments
 v0.2.9, 2013-04-24 -- Added type and value checking to public functions, and added tests
+v1.0.0, 2013-10-20 -- Added Table and Text classes, support for fixed tabstops, and the ability to not align at multiples of tab size when converting to spaces

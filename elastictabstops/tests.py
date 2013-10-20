@@ -1,10 +1,27 @@
 """Test cases for testing ElasticTabstops."""
 
 import unittest
-from elastictabstops import to_elastic_tabstops, to_spaces, _cell_exists, _get_positions_contents
+
+from elastictabstops.classes import Text, Table
+from elastictabstops.convert import _cell_exists, _get_positions_contents
 
 
 ET_TEXT_1 = r"""
+abc
+
+	def
+	ghi
+
+		jkl
+		mno
+
+			pqr
+			stu
+
+vwx
+"""
+
+FT_TEXT_1 = r"""
 abc
 
 	def
@@ -34,8 +51,38 @@ abc
 vwx
 """
 
+TABLE_1 = [
+	[''],
+	['abc'],
+	[''],
+	['', 'def'],
+	['', 'ghi'],
+	[''],
+	['', '', 'jkl'],
+	['', '', 'mno'],
+	[''],
+	['', '', '', 'pqr'],
+	['', '', '', 'stu'],
+	[''],
+	['vwx'],
+	[''],
+]
 
 ET_TEXT_2 = r"""aaa
+
+	abc
+	def
+		ghi
+		jkl
+
+	mno
+	pqr
+
+		stu
+		vwx
+"""
+
+FT_TEXT_2 = r"""aaa
 
 	abc
 	def
@@ -63,6 +110,21 @@ SPACE_TEXT_2 = r"""aaa
                 vwx
 """
 
+TABLE_2 = [
+	['aaa'],
+	[''],
+	['', 'abc'],
+	['', 'def'],
+	['', '', 'ghi'],
+	['', '', 'jkl'],
+	[''],
+	['', 'mno'],
+	['', 'pqr'],
+	[''],
+	['', '', 'stu'],
+	['', '', 'vwx'],
+	[''],
+]
 
 ET_TEXT_3 = r"""
 	abc
@@ -75,7 +137,29 @@ x	jkl
 xxxxxxxxx	pqr
 """
 
+FT_TEXT_3 = r"""
+	abc
+	def
+
+	ghi
+x	jkl
+
+		mno
+xxxxxxxxx	pqr
+"""
+
 SPACE_TEXT_3 = r"""
+        abc
+        def
+
+        ghi
+x       jkl
+
+           mno
+xxxxxxxxx  pqr
+"""
+
+SPACE_TEXT_MULTIPLES_3 = r"""
         abc
         def
 
@@ -86,6 +170,19 @@ x       jkl
 xxxxxxxxx       pqr
 """
 
+TABLE_3 = [
+	[''],
+	['', 'abc'],
+	['', 'def'],
+	[''],
+	['', 'ghi'],
+	['x', 'jkl'],
+	[''],
+	['', 'mno'],
+	['xxxxxxxxx', 'pqr'],
+	[''],
+]
+
 SPACE_TEXT_3_POSITIONS_CONTENTS = [
 	[],
 	[('abc', 8)],
@@ -94,14 +191,19 @@ SPACE_TEXT_3_POSITIONS_CONTENTS = [
 	[('ghi', 8)],
 	[('x', 0), ('jkl', 8)],
 	[],
-	[('mno', 16)],
-	[('xxxxxxxxx', 0), ('pqr', 16)],
+	[('mno', 11)],
+	[('xxxxxxxxx', 0), ('pqr', 11)],
 	[],
 ]
 
-
-
 ET_TEXT_4 = r"""
+	abc
+	def	ghi
+	jkl	mno
+	pqr
+"""
+
+FT_TEXT_4 = r"""
 	abc
 	def	ghi
 	jkl	mno
@@ -115,8 +217,22 @@ SPACE_TEXT_4 = r"""
         pqr
 """
 
+TABLE_4 = [
+	[''],
+	['', 'abc'],
+	['', 'def', 'ghi'],
+	['', 'jkl', 'mno'],
+	['', 'pqr'],
+	[''],
+]
 
 ET_TEXT_5 = r"""
+	abc
+	def	ghi
+	jkl	mno
+	pqr"""
+
+FT_TEXT_5 = r"""
 	abc
 	def	ghi
 	jkl	mno
@@ -128,6 +244,13 @@ SPACE_TEXT_5 = r"""
         jkl     mno
         pqr"""
 
+TABLE_5 = [
+	[''],
+	['', 'abc'],
+	['', 'def', 'ghi'],
+	['', 'jkl', 'mno'],
+	['', 'pqr'],
+]
 
 ET_TEXT_6 = r"""// eeeeeeee.cpp : Defines the entry point for the console application.
 //
@@ -147,7 +270,43 @@ int _tmain(int argc, _TCHAR* argv[])
 
 """
 
+FT_TEXT_6 = r"""// eeeeeeee.cpp : Defines the entry point for the console application.
+//
+
+#include \"stdafx.h\"
+
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+	return 0;
+	kkkkkkkkkkkkkk		kkkkkkkk
+	llllllllllllllllllllll	llllllllllll
+
+	aa	bb	cc
+	a	b	c
+}
+
+"""
+
 SPACE_TEXT_6 = r"""// eeeeeeee.cpp : Defines the entry point for the console application.
+//
+
+#include \"stdafx.h\"
+
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+                return 0;
+                kkkkkkkkkkkkkk          kkkkkkkk
+                llllllllllllllllllllll  llllllllllll
+
+                aa              bb              cc
+                a               b               c
+}
+
+"""
+
+SPACE_TEXT_MULTIPLES_6 = r"""// eeeeeeee.cpp : Defines the entry point for the console application.
 //
 
 #include \"stdafx.h\"
@@ -165,6 +324,25 @@ int _tmain(int argc, _TCHAR* argv[])
 
 """
 
+TABLE_6 = [
+	['// eeeeeeee.cpp : Defines the entry point for the console application.'],
+	['//'],
+	[''],
+	['#include \\"stdafx.h\\"'],
+	[''],
+	[''],
+	['int _tmain(int argc, _TCHAR* argv[])'],
+	['{'],
+	['', 'return 0;'],
+	['', 'kkkkkkkkkkkkkk', 'kkkkkkkk'],
+	['', 'llllllllllllllllllllll', 'llllllllllll'],
+	[''],
+	['', 'aa', 'bb', 'cc'],
+	['', 'a', 'b', 'c'],
+	['}'],
+	[''],
+	[''],
+]
 
 ET_TEXT_7 = r"""	Hallo
 	Pupallo
@@ -173,20 +351,35 @@ ET_TEXT_7 = r"""	Hallo
 	adsdasdasdasda		ghghghgghghg
 """
 
-SPACE_TEXT_7_IN = r"""        Hallo             
-        Pupallo
-        Gugu    gaga
-        hhghga  hghghhghg
-        adsdasdasdasda  ghghghgghghg                
+FT_TEXT_7 = r"""	Hallo
+	Pupallo
+	Gugu		gaga
+	hhghga		hghghhghg
+	adsdasdasdasda		ghghghgghghg
 """
 
-SPACE_TEXT_7_OUT = r"""        Hallo
+SPACE_TEXT_7 = r"""        Hallo
         Pupallo
         Gugu            gaga
         hhghga          hghghhghg
         adsdasdasdasda          ghghghgghghg
 """
 
+SPACE_TEXT_MULTIPLES_7 = r"""        Hallo
+        Pupallo
+        Gugu            gaga
+        hhghga          hghghhghg
+        adsdasdasdasda          ghghghgghghg
+"""
+
+TABLE_7 = [
+	['', 'Hallo'],
+	['', 'Pupallo'],
+	['', 'Gugu', 'gaga'],
+	['', 'hhghga', 'hghghhghg'],
+	['', 'adsdasdasdasda', '', 'ghghghgghghg'],
+	[''],
+]
 
 ET_TEXT_8 = """	push
 		(
@@ -207,13 +400,14 @@ ET_TEXT_8 = """	push
 	}
 """
 
-TAB_TEXT_8_IN = """	push
+# tab_width = 4
+FT_TEXT_8 = """	push
 		(
 		@{$self->{struct}},
 			{
 			source		=> $source,
 			filename	=> $filename,
-			pathname 	=> $pathname,
+			pathname	=> $pathname,
 			lang		=> $lang,
 			level		=> $level,
 			back		=> $back,
@@ -226,7 +420,26 @@ TAB_TEXT_8_IN = """	push
 	}
 """
 
-SPACE_TEXT_8_OUT = """    push
+SPACE_TEXT_8 = """    push
+        (
+        @{$self->{struct}},
+            {
+            source    => $source,
+            filename  => $filename,
+            pathname  => $pathname,
+            lang      => $lang,
+            level     => $level,
+            back      => $back,
+            url       => $url,
+            modified  => $modified,
+            id        => Digest::MD5::md5_hex($url),
+            file      => $file,
+            }
+        );
+    }
+"""
+
+SPACE_TEXT_MULTIPLES_8 = """    push
         (
         @{$self->{struct}},
             {
@@ -245,6 +458,26 @@ SPACE_TEXT_8_OUT = """    push
     }
 """
 
+TABLE_8 = [
+	['', 'push'],
+	['', '', '('],
+	['', '', '@{$self->{struct}},'],
+	['', '', '', '{'],
+	['', '', '', 'source', '=> $source,'],
+	['', '', '', 'filename', '=> $filename,'],
+	['', '', '', 'pathname', '=> $pathname,'],
+	['', '', '', 'lang', '=> $lang,'],
+	['', '', '', 'level', '=> $level,'],
+	['', '', '', 'back', '=> $back,'],
+	['', '', '', 'url', '=> $url,'],
+	['', '', '', 'modified', '=> $modified,'],
+	['', '', '', 'id', '=> Digest::MD5::md5_hex($url),'],
+	['', '', '', 'file', '=> $file,'],
+	['', '', '', '}'],
+	['', '', ');'],
+	['', '}'],
+	[''],
+]
 
 SPACE_TEXT_9 = r"""
 /* Hopefully this Java program should demonstrate how elastic tabstops work.               */
@@ -261,7 +494,7 @@ SPACE_TEXT_9_POSITIONS_CONTENTS = [
 ]
 
 
-ET_FORMATTED_CODE = r"""
+ET_TEXT_10 = r"""
 /* Hopefully this Java program should demonstrate how elastic tabstops work.	*/
 /* Try inserting and deleting different parts of the text and watch as the tabstops move.	*/
 /* If you like this, please ask the writers of your text editor to implement it.	*/
@@ -304,7 +537,50 @@ The Cyberiad	Stanislaw Lem	Harcourt Publishers Ltd	1985
 The Selfish Gene	Richard Dawkins	Oxford University Press	2006
 """
 
-SPACE_FORMATTED_CODE_MIN_2 = r"""
+FT_TEXT_10 = r"""
+/* Hopefully this Java program should demonstrate how elastic tabstops work.			*/
+/* Try inserting and deleting different parts of the text and watch as the tabstops move.	*/
+/* If you like this, please ask the writers of your text editor to implement it.		*/
+
+#include <stdio.h>
+
+struct ipc_perm
+{
+	key_t		key;
+	ushort		uid;	/* owner euid and egid		*/
+	ushort		gid;	/* group id			*/
+	ushort		cuid;	/* creator euid and egid	*/
+	cell-missing		/* for test purposes		*/
+	ushort		mode;	/* access modes			*/
+	ushort		seq;	/* sequence number		*/
+};
+
+int someDemoCode(	int fred,
+			int wilma)
+{
+	x();				/* try making		*/
+	printf("hello!\n");		/* this comment		*/
+	doSomethingComplicated();	/* a bit longer		*/
+	for (i = start; i < end; ++i)
+	{
+		if (isPrime(i))
+		{
+			++numPrimes;
+		}
+	}
+	return numPrimes;
+}
+
+---- and now for something completely different: a table ----
+
+Title			Author			Publisher			Year
+Generation X		Douglas Coupland	Abacus				1995
+Informagic		Jean-Pierre Petit	John Murray Ltd			1982
+The Cyberiad		Stanislaw Lem		Harcourt Publishers Ltd		1985
+The Selfish Gene	Richard Dawkins		Oxford University Press		2006
+"""
+
+SPACE_TEXT_10 = r"""
 /* Hopefully this Java program should demonstrate how elastic tabstops work.               */
 /* Try inserting and deleting different parts of the text and watch as the tabstops move.  */
 /* If you like this, please ask the writers of your text editor to implement it.           */
@@ -313,29 +589,29 @@ SPACE_FORMATTED_CODE_MIN_2 = r"""
 
 struct ipc_perm
 {
-    key_t         key;
-    ushort        uid;   /* owner euid and egid    */
-    ushort        gid;   /* group id               */
-    ushort        cuid;  /* creator euid and egid  */
-    cell-missing         /* for test purposes      */
-    ushort        mode;  /* access modes           */
-    ushort        seq;   /* sequence number        */
+        key_t         key;
+        ushort        uid;    /* owner euid and egid    */
+        ushort        gid;    /* group id               */
+        ushort        cuid;   /* creator euid and egid  */
+        cell-missing          /* for test purposes      */
+        ushort        mode;   /* access modes           */
+        ushort        seq;    /* sequence number        */
 };
 
 int someDemoCode(  int fred,
                    int wilma)
 {
-    x();                       /* try making    */
-    printf("hello!\n");        /* this comment  */
-    doSomethingComplicated();  /* a bit longer  */
-    for (i = start; i < end; ++i)
-    {
-        if (isPrime(i))
+        x();                       /* try making    */
+        printf("hello!\n");        /* this comment  */
+        doSomethingComplicated();  /* a bit longer  */
+        for (i = start; i < end; ++i)
         {
-            ++numPrimes;
+                if (isPrime(i))
+                {
+                        ++numPrimes;
+                }
         }
-    }
-    return numPrimes;
+        return numPrimes;
 }
 
 ---- and now for something completely different: a table ----
@@ -347,7 +623,7 @@ The Cyberiad      Stanislaw Lem      Harcourt Publishers Ltd  1985
 The Selfish Gene  Richard Dawkins    Oxford University Press  2006
 """
 
-SPACE_FORMATTED_CODE_MOD_8 = r"""
+SPACE_TEXT_MULTIPLES_10 = r"""
 /* Hopefully this Java program should demonstrate how elastic tabstops work.                    */
 /* Try inserting and deleting different parts of the text and watch as the tabstops move.       */
 /* If you like this, please ask the writers of your text editor to implement it.                */
@@ -390,6 +666,50 @@ The Cyberiad            Stanislaw Lem           Harcourt Publishers Ltd         
 The Selfish Gene        Richard Dawkins         Oxford University Press         2006
 """
 
+TABLE_10 = [
+	[''],
+	['/* Hopefully this Java program should demonstrate how elastic tabstops work.', '*/'],
+	['/* Try inserting and deleting different parts of the text and watch as the tabstops move.', '*/'],
+	['/* If you like this, please ask the writers of your text editor to implement it.', '*/'],
+	[''],
+	['#include <stdio.h>'],
+	[''],
+	['struct ipc_perm'],
+	['{'],
+	['', 'key_t', 'key;'],
+	['', 'ushort', 'uid;', '/* owner euid and egid', '*/'],
+	['', 'ushort', 'gid;', '/* group id', '*/'],
+	['', 'ushort', 'cuid;', '/* creator euid and egid', '*/'],
+	['', 'cell-missing', '', '/* for test purposes', '*/'],
+	['', 'ushort', 'mode;', '/* access modes', '*/'],
+	['', 'ushort', 'seq;', '/* sequence number', '*/'],
+	['};'],
+	[''],
+	['int someDemoCode(', 'int fred,'],
+	['', 'int wilma)'],
+	['{'],
+	['', 'x();', '/* try making', '*/'],
+	['', 'printf("hello!\\n");', '/* this comment', '*/'],
+	['', 'doSomethingComplicated();', '/* a bit longer', '*/'],
+	['', 'for (i = start; i < end; ++i)'],
+	['', '{'],
+	['', '', 'if (isPrime(i))'],
+	['', '', '{'],
+	['', '', '', '++numPrimes;'],
+	['', '', '}'],
+	['', '}'],
+	['', 'return numPrimes;'],
+	['}'],
+	[''],
+	['---- and now for something completely different: a table ----'],
+	[''],
+	['Title', 'Author', 'Publisher', 'Year'],
+	['Generation X', 'Douglas Coupland', 'Abacus', '1995'],
+	['Informagic', 'Jean-Pierre Petit', 'John Murray Ltd', '1982'],
+	['The Cyberiad', 'Stanislaw Lem', 'Harcourt Publishers Ltd', '1985'],
+	['The Selfish Gene', 'Richard Dawkins', 'Oxford University Press', '2006'],
+	[''],
+]
 
 #def show_diffs(string1, string2):
 #	import difflib
@@ -437,51 +757,80 @@ def show_debug_info(string1, string2):
 
 
 TEST_STRINGS_LIST = [
-	{'et_text': ET_FORMATTED_CODE, 'space_text': SPACE_FORMATTED_CODE_MOD_8, 'tab_size': 8},
-	{'et_text': ET_TEXT_1, 'space_text': SPACE_TEXT_1, 'tab_size': 8},
-	{'et_text': ET_TEXT_2, 'space_text': SPACE_TEXT_2, 'tab_size': 8},
-	{'et_text': ET_TEXT_3, 'space_text': SPACE_TEXT_3, 'tab_size': 8},
-	{'et_text': ET_TEXT_4, 'space_text': SPACE_TEXT_4, 'tab_size': 8},
-	{'et_text': ET_TEXT_5, 'space_text': SPACE_TEXT_5, 'tab_size': 8},
-	{'et_text': ET_TEXT_6, 'space_text': SPACE_TEXT_6, 'tab_size': 16},
-	{'et_text': ET_TEXT_7, 'space_text': SPACE_TEXT_7_IN, 'space_text_out': SPACE_TEXT_7_OUT, 'tab_size': 8},
-	{'et_text': ET_TEXT_8, 'space_text': TAB_TEXT_8_IN, 'space_text_out': SPACE_TEXT_8_OUT, 'tab_size': 4},
+	{'et_text': ET_TEXT_1, 'ft_text': FT_TEXT_1, 'space_text': SPACE_TEXT_1, 'table': TABLE_1, 'tab_width': 8},
+	{'et_text': ET_TEXT_2, 'ft_text': FT_TEXT_2, 'space_text': SPACE_TEXT_2, 'table': TABLE_2, 'tab_width': 8},
+	{'et_text': ET_TEXT_3, 'ft_text': FT_TEXT_3, 'space_text': SPACE_TEXT_3, 'space_text_multiples': SPACE_TEXT_MULTIPLES_3, 'table': TABLE_3, 'tab_width': 8},
+	{'et_text': ET_TEXT_4, 'ft_text': FT_TEXT_4, 'space_text': SPACE_TEXT_4, 'table': TABLE_4, 'tab_width': 8},
+	{'et_text': ET_TEXT_5, 'ft_text': FT_TEXT_5, 'space_text': SPACE_TEXT_5, 'table': TABLE_5, 'tab_width': 8},
+	{'et_text': ET_TEXT_6, 'ft_text': FT_TEXT_6, 'space_text': SPACE_TEXT_6, 'space_text_multiples': SPACE_TEXT_MULTIPLES_6, 'table': TABLE_6, 'tab_width': 16},
+	{'et_text': ET_TEXT_7, 'ft_text': FT_TEXT_7, 'space_text': SPACE_TEXT_7, 'space_text_multiples': SPACE_TEXT_MULTIPLES_7, 'table': TABLE_7, 'tab_width': 8},
+	{'et_text': ET_TEXT_8, 'ft_text': FT_TEXT_8, 'space_text': SPACE_TEXT_8, 'space_text_multiples': SPACE_TEXT_MULTIPLES_8, 'table': TABLE_8, 'tab_width': 4},
+	{'et_text': ET_TEXT_10, 'ft_text': FT_TEXT_10, 'space_text': SPACE_TEXT_10, 'space_text_multiples': SPACE_TEXT_MULTIPLES_10, 'table': TABLE_10, 'tab_width': 8},
 ]
 
 
 class TestElasticTabstops(unittest.TestCase):
 	"""Test case for testing ElasticTabstops."""
 
-	def test_to_elastic_tabstops(self):
+	def test_type_value_errors(self):
 		"""Test to_elastic_tabstops()."""
 		with self.assertRaises(TypeError):
-			to_elastic_tabstops(2, 2)
-			to_elastic_tabstops('', '')
+			Text(99)
+		with self.assertRaises(TypeError):
+			Text('abc').from_spaces(tab_width='')
+		with self.assertRaises(TypeError):
+			Text('abc').from_fixed_tabstops(tab_width='')
+		with self.assertRaises(TypeError):
+			Table(99)
+		with self.assertRaises(TypeError):
+			Table([['abc']]).to_spaces(tab_width='')
+		with self.assertRaises(TypeError):
+			Table([['abc']]).to_fixed_tabstops(tab_width='')
 
 		with self.assertRaises(ValueError):
-			to_elastic_tabstops('', 1)
+			Text('abc').from_spaces(1)
+		with self.assertRaises(ValueError):
+			Text('abc').from_fixed_tabstops(tab_width=1)
+		with self.assertRaises(ValueError):
+			Table([['abc']]).to_spaces(tab_width=1)
 
+	def test_to_elastic_tabstops(self):
+		"""Test to_elastic_tabstops()."""
 		for test_strings in TEST_STRINGS_LIST:
-			string1 = test_strings['et_text']
-			string2 = to_elastic_tabstops(test_strings['space_text'], test_strings['tab_size'])
-			self.assertEqual(string1, string2, show_debug_info(string1, string2))
+			orig_elastic = test_strings['et_text']
+			new_elastic = Table(test_strings['table']).to_elastic_tabstops()
+			self.assertEqual(orig_elastic, new_elastic, show_debug_info(orig_elastic, new_elastic))
+
+			orig_table = test_strings['table']
+			new_table = Text(test_strings['et_text']).from_elastic_tabstops()
+			self.assertEqual(orig_table, new_table)
+
+	def test_to_fixed_tabstops(self):
+		"""Test to_fixed_tabstops()."""
+		for test_strings in TEST_STRINGS_LIST:
+			orig_fixed = test_strings['ft_text']
+			new_fixed = Table(test_strings['table']).to_fixed_tabstops(test_strings['tab_width'])
+			self.assertEqual(orig_fixed, new_fixed, show_debug_info(orig_fixed, new_fixed))
+
+			orig_table = test_strings['table']
+			new_table = Text(test_strings['ft_text']).from_fixed_tabstops(test_strings['tab_width'])
+			self.assertEqual(orig_table, new_table)
 
 	def test_to_spaces(self):
 		"""Test to_spaces()."""
-		with self.assertRaises(TypeError):
-			to_spaces(2, 2)
-			to_spaces('', '')
-
-		with self.assertRaises(ValueError):
-			to_spaces('', 1)
-
 		for test_strings in TEST_STRINGS_LIST:
-			if 'space_text_out' in test_strings:
-				string1 = test_strings['space_text_out']
-			else:
-				string1 = test_strings['space_text']
-			string2 = to_spaces(test_strings['et_text'], test_strings['tab_size'])
-			self.assertEqual(string1, string2, show_debug_info(string1, string2))
+			orig_spaces = test_strings['space_text']
+			new_spaces = Table(test_strings['table']).to_spaces(test_strings['tab_width'])
+			self.assertEqual(orig_spaces, new_spaces, show_debug_info(orig_spaces, new_spaces))
+
+			if 'space_text_multiples' in test_strings:
+				orig_spaces_multiples = test_strings['space_text_multiples']
+				new_spaces_multiples = Table(test_strings['table']).to_spaces(test_strings['tab_width'], multiples_of_tab_width=True)
+				self.assertEqual(orig_spaces_multiples, new_spaces_multiples, show_debug_info(orig_spaces_multiples, new_spaces_multiples))
+
+			orig_table = test_strings['table']
+			new_table = Text(test_strings['space_text']).from_spaces(test_strings['tab_width'])
+			self.assertEqual(orig_table, new_table)
 
 	def test_cell_exists(self):
 		"""Test _cell_exists()."""

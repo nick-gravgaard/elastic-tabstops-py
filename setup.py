@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.2.9'
+version = '1.0.0'
 
 setup(name='ElasticTabstops',
     version=version,

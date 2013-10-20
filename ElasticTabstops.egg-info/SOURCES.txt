@@ -1,5 +1,5 @@
 CHANGES.txt
-LICENSE.txt
+LICENCE.txt
 MANIFEST.in
 README.txt
 setup.cfg
@@ -12,4 +12,6 @@ ElasticTabstops.egg-info/entry_points.txt
 ElasticTabstops.egg-info/not-zip-safe
 ElasticTabstops.egg-info/top_level.txt
 elastictabstops/__init__.py
+elastictabstops/classes.py
+elastictabstops/convert.py
 elastictabstops/tests.py
