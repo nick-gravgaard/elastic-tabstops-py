@@ -1,4 +1,4 @@
-# Copyright (c) 2007-2013 Nick Gravgaard <me@nickgravgaard.com>
+# Copyright (c) 2007-2022 Nick Gravgaard <nick@nickgravgaard.com>
 # This code is licensed under the MIT Licence - see LICENCE.txt
 
 # This file tries to follow the Style Guide for Python Code (PEP 8) *EXCEPT*

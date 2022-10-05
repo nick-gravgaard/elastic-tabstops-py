@@ -2,9 +2,9 @@ Metadata-Version: 1.1
 Name: ElasticTabstops
 Version: 1.0.0
 Summary: Converts text indented/aligned with elastic tabstops
-Home-page: http://nickgravgaard.com/elastictabstops/
+Home-page: https://github.com/nickgravgaard/elastic-tabstops-py
 Author: Nick Gravgaard
-Author-email: me@nickgravgaard.com
+Author-email: nick@nickgravgaard.com
 License: MIT/X11
 Description: Description
         ===========
