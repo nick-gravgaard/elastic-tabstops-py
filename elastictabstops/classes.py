@@ -6,7 +6,13 @@
 #  * it doesn't follow the Maximum Line Length rule
 # use pylint as following: pylint --indent-string='\t' --max-line-length=1000 elastictabstops
 
-from collections import Sequence
+# Abstract Base Classes ("abc") of the "collection" module were moved to "collections.abc" 
+# with Python:3.3, see https://docs.python.org/3.9/library/collections.html#module-collections
+import sys
+if sys.version_info.major >= 3 and sys.version_info.minor >= 3:
+    from collections.abc import Sequence
+else:
+    from collections import Sequence
 
 from elastictabstops.convert import _from_spaces, _from_elastic_tabstops, _from_fixed_tabstops, _to_spaces, _to_elastic_tabstops, _to_fixed_tabstops
 
