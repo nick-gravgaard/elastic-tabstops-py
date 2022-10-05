@@ -1,7 +1,7 @@
 CHANGES.txt
 LICENCE.txt
 MANIFEST.in
-README.txt
+README.md
 setup.cfg
 setup.py
 tox.ini
