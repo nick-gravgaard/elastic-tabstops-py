@@ -7,6 +7,7 @@ setup(name='ElasticTabstops',
     version=version,
     description='Converts text indented/aligned with elastic tabstops',
     long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2.7',
