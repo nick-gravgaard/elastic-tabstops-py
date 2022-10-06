@@ -1,7 +1,7 @@
 Description
 ===========
 
-This package provides functionality for handling text indented/aligned with elastic tabstops. If you have an editor which uses elastic tabstops but work on a project that uses spaces, you might use this to convert a file from using spaces to using elastic tabstops, edit it in an elastic tabstops enabled editor and then convert it back to using spaces before saving to disk.
+This package provides functionality for handling text indented/aligned with [elastic tabstops](https://nickgravgaard.com/elastic-tabstops/). If you have an editor which uses elastic tabstops but work on a project that uses spaces, you might use this to convert a file from using spaces to using elastic tabstops, edit it in an elastic tabstops enabled editor and then convert it back to using spaces before saving to disk.
 
 Alternatively, it can be a nice way to create text from tables of data.
 
